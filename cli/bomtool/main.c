@@ -269,9 +269,11 @@ main(int argc, char *argv[])
 	pkgconf_list_t pkgq = PKGCONF_LIST_INITIALIZER;
 	unsigned int want_client_flags = PKGCONF_PKG_PKGF_SEARCH_PRIVATE;
 	pkgconf_cross_personality_t *personality = pkgconf_cross_personality_default();
+	char world_id[] = "virtual:world";
+	char world_realname[] = "virtual world package";
 	pkgconf_pkg_t world = {
-		.id = "virtual:world",
-		.realname = "virtual world package",
+		.id = world_id,
+		.realname = world_realname,
 		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
 	};
 
