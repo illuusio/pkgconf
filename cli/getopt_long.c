@@ -102,7 +102,8 @@ static int parse_long_options(char * const *, const char *,
 static int gcd(int, int);
 static void permute_args(int, int, int, char * const *);
 
-static char *place = EMSG; /* option letter processing */
+static char emsg_str[5] = EMSG; /* Overcome const qualifiers warnings */
+static char *place = emsg_str; /* option letter processing */
 
 /* XXX: set pkg_optreset to 1 rather than these two */
 static int nonopt_start = -1; /* first non option argument (for permute) */
@@ -412,7 +413,7 @@ start:
 	if (pkg_optreset || !*place) {		/* update scanning pointer */
 		pkg_optreset = 0;
 		if (pkg_optind >= nargc) {          /* end of argument vector */
-			place = EMSG;
+			place = emsg_str;
 			if (nonopt_end != -1) {
 				/* do permutation, if we have to */
 				permute_args(nonopt_start, nonopt_end,
@@ -435,7 +436,7 @@ start:
 #else
 		    (place[1] == '\0' && strchr(options, '-') == NULL)) {
 #endif
-			place = EMSG;		/* found non-option */
+			place = emsg_str;		/* found non-option */
 			if (flags & FLAG_ALLARGS) {
 				/*
 				 * GNU extension:
@@ -473,7 +474,7 @@ start:
 		 */
 		if (place[1] != '\0' && *++place == '-' && place[1] == '\0') {
 			pkg_optind++;
-			place = EMSG;
+			place = emsg_str;
 			/*
 			 * We found an option (--), so if we skipped
 			 * non-options, we have to permute.
@@ -511,7 +512,7 @@ start:
 		optchar = parse_long_options(nargv, options, long_options,
 		    idx, short_too, flags);
 		if (optchar != -1) {
-			place = EMSG;
+			place = emsg_str;
 			return (optchar);
 		}
 	}
@@ -550,7 +551,7 @@ start:
 		if (*place)			/* no space */
 			/* NOTHING */;
 		else if (++pkg_optind >= nargc) {	/* no arg */
-			place = EMSG;
+			place = emsg_str;
 			if (PRINT_ERROR) {
 				fprintf(stderr, "pkgconf: ");
 				fprintf(stderr, recargchar, optchar);
@@ -565,7 +566,7 @@ start:
 #endif
 		optchar = parse_long_options(nargv, options, long_options,
 		    idx, 0, flags);
-		place = EMSG;
+		place = emsg_str;
 		return (optchar);
 	}
 	if (*++oli != ':') {			/* doesn't take argument */
@@ -577,7 +578,7 @@ start:
 			pkg_optarg = place;
 		else if (oli[1] != ':') {	/* arg not optional */
 			if (++pkg_optind >= nargc) {	/* no arg */
-				place = EMSG;
+				place = emsg_str;
 				if (PRINT_ERROR) {
 					fprintf(stderr, "pkgconf: ");
 					fprintf(stderr, recargchar, optchar);
@@ -588,7 +589,7 @@ start:
 			} else
 				pkg_optarg = nargv[pkg_optind];
 		}
-		place = EMSG;
+		place = emsg_str;
 		++pkg_optind;
 	}
 	/* dump back option letter */
