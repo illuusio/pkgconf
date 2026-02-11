@@ -290,9 +290,11 @@ pkgconf_queue_verify(pkgconf_client_t *client, pkgconf_pkg_t *world, pkgconf_lis
 {
 	unsigned int result;
 	const unsigned int saved_flags = client->flags;
+	char world_id[] = "user:request";
+	char world_realname[] = "virtual world package";
 	pkgconf_pkg_t initial_world = {
-		.id = "user:request",
-		.realname = "virtual world package",
+		.id = world_id,
+		.realname = world_realname,
 		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
 	};
 
@@ -433,9 +435,11 @@ bool
 pkgconf_queue_apply(pkgconf_client_t *client, pkgconf_list_t *list, pkgconf_queue_apply_func_t func, int maxdepth, void *data)
 {
 	bool ret = false;
+	char world_id[] = "virtual:world";
+	char world_realname[] = "virtual world package";
 	pkgconf_pkg_t world = {
-		.id = "virtual:world",
-		.realname = "virtual world package",
+		.id = world_id,
+		.realname = world_realname,
 		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
 	};
 
@@ -474,9 +478,11 @@ bool
 pkgconf_queue_validate(pkgconf_client_t *client, pkgconf_list_t *list, int maxdepth)
 {
 	bool retval = true;
+	char world_id[] = "virtual:world";
+	char world_realname[] = "virtual world package";
 	pkgconf_pkg_t world = {
-		.id = "virtual:world",
-		.realname = "virtual world package",
+		.id = world_id,
+		.realname = world_realname,
 		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
 	};
 
