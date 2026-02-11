@@ -31,8 +31,10 @@
  */
 static unsigned default_personality_init = 0;
 
+static char default_personality_name[] = "default";
+
 static pkgconf_cross_personality_t default_personality = {
-	.name = "default",
+	.name = default_personality_name,
 };
 
 static inline void
