@@ -974,9 +974,11 @@ pkgconf_cli_run(pkgconf_cli_state_t *state, int argc, char *argv[], int last_arg
 	pkgconf_list_t deplist = PKGCONF_LIST_INITIALIZER;
 	pkgconf_node_t *node;
 	pkgconf_buffer_t queryparams = PKGCONF_BUFFER_INITIALIZER;
+	char world_id[] = "virtual:world";
+	char world_realname[] = "virtual world package";
 	pkgconf_pkg_t world = {
-		.id = "virtual:world",
-		.realname = "virtual world package",
+		.id = world_id,
+		.realname = world_realname,
 		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
 	};
 
