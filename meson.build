@@ -13,8 +13,20 @@ add_project_arguments(
   '-D_DEFAULT_SOURCE',
   '-D_POSIX_C_SOURCE=200809L',
   cc.get_supported_arguments(
+    '-Wall',
+    '-Wcast-align',
+    '-Wdate-time',
+    '-Wextra',
     '-Wimplicit-function-declaration',
     '-Wmisleading-indentation',
+    '-Wmissing-prototypes',
+    '-Wmissing-variable-declarations',
+    '-Wnested-externs',
+    '-Wold-style-definition',
+    '-Wpointer-arith',
+    '-Wshadow',
+    '-Wstrict-prototypes',
+    '-Wwrite-strings'
   ),
   language : 'c',
 )
