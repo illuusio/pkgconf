@@ -536,9 +536,6 @@ pkgconfcli_serialize_array_add_array(pkgconfcli_serialize_array_t *array, pkgcon
 	return pkgconfcli_serialize_array_add_take(array, ret);
 }
 
-/*pkgconfcli_serialize_value_t *
-pkgconfcli_serialize_sbom(pkgconf_client_t *client, libsbom_core_agent_t *agent, libsbom_core_tool_t *tool, libsbom_core_creation_info_t *creation, libsbom_core_spdx_document_t *spdx);*/
-
 #ifdef __cplusplus
 }
 #endif
