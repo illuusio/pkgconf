@@ -62,6 +62,21 @@ pkgconfcli_serialize_value_to_buf(pkgconf_buffer_t *buffer, pkgconfcli_serialize
 pkgconfcli_serialize_value_t *
 pkgconfcli_serialize_value_dup(const pkgconfcli_serialize_value_t *value);
 
+bool
+pkgconfcli_serialize_is_value(const pkgconfcli_serialize_value_t *value, pkgconfcli_serialize_type_t type);
+
+pkgconfcli_serialize_object_list_t *
+pkgconfcli_serialize_get_value_object(const pkgconfcli_serialize_value_t *value);
+
+pkgconfcli_serialize_array_t *
+pkgconfcli_serialize_get_value_array(const pkgconfcli_serialize_value_t *value);
+
+const char *
+pkgconfcli_serialize_get_value_string(const pkgconfcli_serialize_value_t *value);
+
+int
+pkgconfcli_serialize_get_value_int(const pkgconfcli_serialize_value_t *value);
+
 pkgconfcli_serialize_value_t *
 pkgconfcli_serialize_object_add_take(pkgconfcli_serialize_object_list_t *object_list, const char *key, pkgconfcli_serialize_value_t* value);
 
@@ -73,6 +88,9 @@ pkgconfcli_serialize_array_new(void);
 
 pkgconfcli_serialize_value_t *
 pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_array_t *array, pkgconfcli_serialize_value_t* value);
+
+pkgconfcli_serialize_value_t *
+pkgconfcli_serialize_find_object(pkgconfcli_serialize_value_t *value, const char *key);
 
 void
 pkgconfcli_serialize_value_free(pkgconfcli_serialize_value_t *value);

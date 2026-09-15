@@ -154,6 +154,60 @@ pkgconfcli_serialize_value_to_buf(pkgconf_buffer_t *buffer, pkgconfcli_serialize
 	return false;
 }
 
+bool
+pkgconfcli_serialize_is_value(const pkgconfcli_serialize_value_t *value, pkgconfcli_serialize_type_t type)
+{
+	if (!value)
+		return false;
+
+	if (value->type == type)
+		return true;
+
+	return false;
+}
+
+pkgconfcli_serialize_object_list_t *
+pkgconfcli_serialize_get_value_object(const pkgconfcli_serialize_value_t *value)
+{
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_OBJECT))
+		return NULL;
+
+	return value->value.o;
+}
+
+pkgconfcli_serialize_array_t *
+pkgconfcli_serialize_get_value_array(const pkgconfcli_serialize_value_t *value)
+{
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_ARRAY))
+		return NULL;
+
+	return value->value.a;
+}
+
+
+const char *
+pkgconfcli_serialize_get_value_string(const pkgconfcli_serialize_value_t *value)
+{
+	if (!pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_STRING))
+		printf("pkgconfcli_serialize_get_value_string %d\n", value->type);
+
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_STRING))
+		return NULL;
+
+	return value->value.s;
+}
+
+
+int
+pkgconfcli_serialize_get_value_int(const pkgconfcli_serialize_value_t *value)
+{
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_INT))
+		return 0;
+
+	return value->value.i;
+}
+
+
 /*
  * !doc
  *
@@ -293,6 +347,47 @@ pkgconfcli_serialize_value_free(pkgconfcli_serialize_value_t *value)
 
 	free(value);
 }
+
+/*
+ * !doc
+ *
+ * .. c:function:: pkgconfcli_serialize_object_t * pkgconfcli_serialize_find_object(pkgconfcli_serialize_object_list_t *object_list, const char *key)
+ *
+ *    Find object from object list byt key
+ *
+ *    :param pkgconfcli_serialize_object_list_t *object_list: Object list which should be traversed
+ *    :param const char *key: Key to be seeked
+ *    :return: NULL if not found or pointer to object
+ */
+pkgconfcli_serialize_value_t *
+pkgconfcli_serialize_find_object(pkgconfcli_serialize_value_t *value, const char *key)
+{
+	if (!value || !key)
+		return NULL;
+
+	pkgconf_node_t *iter = NULL;
+	size_t key_len = strnlen(key, 1024);
+
+	switch(value->type) {
+		case PKGCONFCLI_SERIALIZE_TYPE_OBJECT:
+
+			PKGCONF_FOREACH_LIST_ENTRY(value->value.o->entries.head, iter)
+			{
+				pkgconfcli_serialize_object_t *entry_obj = iter->data;
+				if (!strncmp(entry_obj->key, key, key_len))
+				{
+					return entry_obj->value;
+				}
+			}
+			break;
+		default:
+			return NULL;
+			break;
+	}
+
+	return NULL;
+}
+
 
 /*
  * !doc
