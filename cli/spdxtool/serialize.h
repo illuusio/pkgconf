@@ -64,6 +64,21 @@ spdxtool_serialize_value_dup(const spdxtool_serialize_value_t *value);
 bool
 spdxtool_serialize_is_value(const spdxtool_serialize_value_t *value, spdxtool_serialize_type_t type);
 
+spdxtool_serialize_object_list_t *
+spdxtool_serialize_get_value_object(const spdxtool_serialize_value_t *value);
+
+spdxtool_serialize_array_t *
+spdxtool_serialize_get_value_array(const spdxtool_serialize_value_t *value);
+
+const char *
+spdxtool_serialize_get_value_string(const spdxtool_serialize_value_t *value);
+
+int
+spdxtool_serialize_get_value_int(const spdxtool_serialize_value_t *value);
+
+bool
+spdxtool_serialize_get_value_bool(const spdxtool_serialize_value_t *value);
+
 spdxtool_serialize_value_t *
 spdxtool_serialize_object_add_take(spdxtool_serialize_object_list_t *object_list, const char *key, spdxtool_serialize_value_t* value);
 

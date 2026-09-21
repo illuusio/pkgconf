@@ -183,6 +183,102 @@ spdxtool_serialize_is_value(const spdxtool_serialize_value_t *value, spdxtool_se
 /*
  * !doc
  *
+ * .. c:function:: spdxtool_serialize_object_list_t *spdxtool_serialize_get_value_object(const spdxtool_serialize_value_t *value)
+ *
+ *    Return object from spdxtool_serialize_value_t
+ *
+ *    :param const spdxtool_serialize_value_t *value: Value struct
+ *    :return: Object if it's available or NULL if it's not
+ */
+spdxtool_serialize_object_list_t *
+spdxtool_serialize_get_value_object(const spdxtool_serialize_value_t *value)
+{
+	if(!value || !spdxtool_serialize_is_value(value, SPDXTOOL_SERIALIZE_TYPE_OBJECT))
+		return NULL;
+
+	return value->value.o;
+}
+
+/*
+ * !doc
+ *
+ * .. c:function:: spdxtool_serialize_array_t *spdxtool_serialize_get_value_array(const spdxtool_serialize_value_t *value)
+ *
+ *    Return array from spdxtool_serialize_value_t
+ *
+ *    :param const spdxtool_serialize_value_t *value: Value struct
+ *    :return: Array if it's available or NULL if it's not
+ */
+spdxtool_serialize_array_t *
+spdxtool_serialize_get_value_array(const spdxtool_serialize_value_t *value)
+{
+	if(!value || !spdxtool_serialize_is_value(value, SPDXTOOL_SERIALIZE_TYPE_ARRAY))
+		return NULL;
+
+	return value->value.a;
+}
+
+/*
+ * !doc
+ *
+ * .. c:function:: const char *spdxtool_serialize_get_value_string(const spdxtool_serialize_value_t *value)
+ *
+ *    Return string from spdxtool_serialize_value_t
+ *
+ *    :param const spdxtool_serialize_value_t *value: Value struct
+ *    :return: String if it's available or NULL if it's not
+ */
+const char *
+spdxtool_serialize_get_value_string(const spdxtool_serialize_value_t *value)
+{
+	if(!value || !spdxtool_serialize_is_value(value, SPDXTOOL_SERIALIZE_TYPE_STRING))
+		return NULL;
+
+	return value->value.s;
+}
+
+/*
+ * !doc
+ *
+ * .. c:function:: int spdxtool_serialize_get_value_int(const spdxtool_serialize_value_t *value)
+ *
+ *    Return int from spdxtool_serialize_value_t
+ *
+ *    :param const spdxtool_serialize_value_t *value: Value struct
+ *    :return: Integer if it's available or NULL if it's not
+ */
+int
+spdxtool_serialize_get_value_int(const spdxtool_serialize_value_t *value)
+{
+	if(!value || !spdxtool_serialize_is_value(value, SPDXTOOL_SERIALIZE_TYPE_INT))
+		return 0;
+
+	return value->value.i;
+}
+
+/*
+ * !doc
+ *
+ * .. c:function:: bool spdxtool_serialize_get_value_bool(const spdxtool_serialize_value_t *value)
+ *
+ *    Return int from spdxtool_serialize_value_t
+ *
+ *    :param const spdxtool_serialize_value_t *value: Value struct
+ *    :return: Integer if it's available or NULL if it's not
+ */
+bool
+spdxtool_serialize_get_value_bool(const spdxtool_serialize_value_t *value)
+{
+	if(!value || !spdxtool_serialize_is_value(value, SPDXTOOL_SERIALIZE_TYPE_BOOL))
+		return false;
+
+	return value->value.b;
+}
+
+
+/*
+ * !doc
+ *
  * .. c:function:: spdxtool_serialize_value_t *spdxtool_serialize_object_add_take(spdxtool_serialize_object_list_t *object_list, const char *key, spdxtool_serialize_value_t *value)
  *
  *    Add a key-value pair to a JSON object list. The key is copied internally.
