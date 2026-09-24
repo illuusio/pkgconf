@@ -60,11 +60,7 @@ error_handler(const char *msg, const pkgconf_client_t *client, void *data)
 	(void) data;
 	if (!pkgconf_output_file_fmt(error_msgout, "%s", msg))
 	{
-<<<<<<< HEAD
 		pkgconf_error(client, "%s: Could not output error message: %s", app_name, strerror(errno));
-=======
-		pkgconf_error(client, "spdxtool: Could not output error message: %s", strerror(errno));
->>>>>>> 4b82017 (sbomtool: Add sbomtool with CycloneDX)
 		return false;
 	}
 	return true;

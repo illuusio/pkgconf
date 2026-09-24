@@ -15,7 +15,7 @@
     },
     "components": [
         {
-            "bom-ref": "github.com:pkgconf:pkgconf:component:test3",
+            "bom-ref": "pkgconf:component:test3",
             "type": "application",
             "name": "test3",
             "version": "3.0.0",
