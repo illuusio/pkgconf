@@ -469,6 +469,7 @@ test_suites = [
   'tuple',
   'bomtool',
   'spdxtool',
+  'sbomtool',
   'pccritic',
   'symlink'
 ]
