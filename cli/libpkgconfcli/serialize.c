@@ -154,60 +154,6 @@ pkgconfcli_serialize_value_to_buf(pkgconf_buffer_t *buffer, pkgconfcli_serialize
 	return false;
 }
 
-bool
-pkgconfcli_serialize_is_value(const pkgconfcli_serialize_value_t *value, pkgconfcli_serialize_type_t type)
-{
-	if (!value)
-		return false;
-
-	if (value->type == type)
-		return true;
-
-	return false;
-}
-
-pkgconfcli_serialize_object_list_t *
-pkgconfcli_serialize_get_value_object(const pkgconfcli_serialize_value_t *value)
-{
-	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_OBJECT))
-		return NULL;
-
-	return value->value.o;
-}
-
-pkgconfcli_serialize_array_t *
-pkgconfcli_serialize_get_value_array(const pkgconfcli_serialize_value_t *value)
-{
-	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_ARRAY))
-		return NULL;
-
-	return value->value.a;
-}
-
-
-const char *
-pkgconfcli_serialize_get_value_string(const pkgconfcli_serialize_value_t *value)
-{
-	if (!pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_STRING))
-		printf("pkgconfcli_serialize_get_value_string %d\n", value->type);
-
-	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_STRING))
-		return NULL;
-
-	return value->value.s;
-}
-
-
-int
-pkgconfcli_serialize_get_value_int(const pkgconfcli_serialize_value_t *value)
-{
-	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_INT))
-		return 0;
-
-	return value->value.i;
-}
-
-
 /*
  * !doc
  *
@@ -229,6 +175,47 @@ pkgconfcli_serialize_is_value(const pkgconfcli_serialize_value_t *value, pkgconf
 		return true;
 
 	return false;
+}
+
+pkgconfcli_serialize_object_list_t *
+pkgconfcli_serialize_value_get_object(const pkgconfcli_serialize_value_t *value)
+{
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_OBJECT))
+		return NULL;
+
+	return value->value.o;
+}
+
+pkgconfcli_serialize_array_t *
+pkgconfcli_serialize_value_get_array(const pkgconfcli_serialize_value_t *value)
+{
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_ARRAY))
+		return NULL;
+
+	return value->value.a;
+}
+
+
+const char *
+pkgconfcli_serialize_value_get_string(const pkgconfcli_serialize_value_t *value)
+{
+	if (!pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_STRING))
+		printf("pkgconfcli_serialize_value_get_string %d\n", value->type);
+
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_STRING))
+		return NULL;
+
+	return value->value.s;
+}
+
+
+int
+pkgconfcli_serialize_value_get_int(const pkgconfcli_serialize_value_t *value)
+{
+	if(!value || !pkgconfcli_serialize_is_value(value, PKGCONFCLI_SERIALIZE_TYPE_INT))
+		return 0;
+
+	return value->value.i;
 }
 
 /*
@@ -302,6 +289,34 @@ pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_array_t *array, pkgconf
 
 	pkgconf_node_insert_tail(node, value, &array->items);
 	return value;
+}
+
+
+bool
+pkgconfcli_serialize_array_insert_copy(pkgconfcli_serialize_array_t *src, pkgconfcli_serialize_array_t *dst)
+{
+	if(!src || !dst)
+		return false;
+
+	pkgconf_node_t *node = NULL;
+
+	while(src->items.length)
+	{
+		pkgconf_node_pop(&node, &src->items);
+		if(!pkgconfcli_serialize_array_add_take(dst, (pkgconfcli_serialize_value_t *)node->data))
+			return false;
+		free(node);
+		node = NULL;
+	}
+
+	/*PKGCONF_FOREACH_LIST_ENTRY(src->items.head, iter)
+	{
+		pkgconfcli_serialize_value_t *entry = iter->data;
+		printf("1#MUUU\n");
+		if(!pkgconfcli_serialize_array_add_take(dst, entry))
+			return false;
+	}*/
+	return true;
 }
 
 /*

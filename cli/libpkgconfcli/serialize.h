@@ -66,16 +66,16 @@ PKGCONF_API bool
 pkgconfcli_serialize_is_value(const pkgconfcli_serialize_value_t *value, pkgconfcli_serialize_type_t type);
 
 PKGCONF_API pkgconfcli_serialize_object_list_t *
-pkgconfcli_serialize_get_value_object(const pkgconfcli_serialize_value_t *value);
+pkgconfcli_serialize_value_get_object(const pkgconfcli_serialize_value_t *value);
 
 PKGCONF_API pkgconfcli_serialize_array_t *
-pkgconfcli_serialize_get_value_array(const pkgconfcli_serialize_value_t *value);
+pkgconfcli_serialize_value_get_array(const pkgconfcli_serialize_value_t *value);
 
 PKGCONF_API const char *
-pkgconfcli_serialize_get_value_string(const pkgconfcli_serialize_value_t *value);
+pkgconfcli_serialize_value_get_string(const pkgconfcli_serialize_value_t *value);
 
 PKGCONF_API int
-pkgconfcli_serialize_get_value_int(const pkgconfcli_serialize_value_t *value);
+pkgconfcli_serialize_value_get_int(const pkgconfcli_serialize_value_t *value);
 
 pkgconfcli_serialize_value_t *
 pkgconfcli_serialize_object_add_take(pkgconfcli_serialize_object_list_t *object_list, const char *key, pkgconfcli_serialize_value_t* value);
@@ -89,14 +89,13 @@ pkgconfcli_serialize_array_new(void);
 PKGCONF_API pkgconfcli_serialize_value_t *
 pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_array_t *array, pkgconfcli_serialize_value_t* value);
 
-<<<<<<< HEAD
-PKGCONF_API void
-=======
-pkgconfcli_serialize_value_t *
+PKGCONF_API bool
+pkgconfcli_serialize_array_insert_copy(pkgconfcli_serialize_array_t *src, pkgconfcli_serialize_array_t *dst);
+
+PKGCONF_API pkgconfcli_serialize_value_t *
 pkgconfcli_serialize_find_object(pkgconfcli_serialize_value_t *value, const char *key);
 
-void
->>>>>>> 77b2bfb (First draft version of sbomtool)
+PKGCONF_API void
 pkgconfcli_serialize_value_free(pkgconfcli_serialize_value_t *value);
 
 PKGCONF_API void
@@ -230,7 +229,7 @@ pkgconfcli_serialize_value_object(pkgconfcli_serialize_object_list_t *object_lis
 	pkgconfcli_serialize_value_t *value = calloc(1, sizeof(pkgconfcli_serialize_value_t));
 	if (!value)
 	{
-		pkgconfcli_serialize_object_list_free(object_list);
+ 		pkgconfcli_serialize_object_list_free(object_list);
 		return NULL;
 	}
 

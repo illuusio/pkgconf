@@ -17,6 +17,8 @@
 #include "cyclonedx/metadata.h"
 #include "cyclonedx/dependencies.h"
 #include "cyclonedx/structure.h"
+#include "spdx3/structure.h"
+#include "spdx3/software.h"
 #include "util.h"
 
 #define PKG_VERSION			(((uint64_t) 1) << 1)
@@ -116,6 +118,8 @@ main(int argc, char *argv[])
 	const char *creation_time = NULL;
 	const char *agent_name = NULL;
 	const char *agent_url = NULL;
+	sbomtool_spdx3_document_t spdx_document;
+	const char *creation_id = NULL;
 	bool is_tool = false;
 
 	error_msgout = stderr;
@@ -151,9 +155,9 @@ main(int argc, char *argv[])
 		case 102:
 			creation_time = pkgconfcli_optarg;
 			break;
-		/*case 103:
+		case 103:
 			creation_id = pkgconfcli_optarg;
-			break;*/
+			break;
 		case 104:
 			is_tool = true;
 			break;
@@ -190,6 +194,9 @@ main(int argc, char *argv[])
 
 	if (!agent_url)
 		agent_url = SBOM_TOOL_URL_DEFAULT;
+
+	if (!creation_id)
+		creation_id = "_:creationinfo_1";
 
 	pkgconf_client_options_t client_options = {
 		.error_handler = error_handler,
@@ -255,19 +262,40 @@ main(int argc, char *argv[])
 	sbomtool_util_set_uri_root(&pkg_client, sbom_id_base);
 	sbomtool_util_set_uri_separator_colon(&pkg_client, colon_sep);
 
+	memset(&spdx_document, 0x00, sizeof(sbomtool_spdx3_document_t));
+	spdx_document.creation_info_id = creation_id;
+	spdx_document.timestamp = creation_time;
+	spdx_document.agent_name = agent_name;
 
-	pkgconfcli_serialize_value_t *cyclonedx_doc = sbomtool_cyclonedx_structure_new(&pkg_client, 1);
-	sbomtool_cyclonedx_structure_add_metadata(&pkg_client, cyclonedx_doc, creation_time, agent_name, agent_url, is_tool);
+	//pkgconfcli_serialize_value_t *cyclonedx_doc = sbomtool_spdx3_structure_new(&pkg_client, 1);
+	pkgconfcli_serialize_value_t *cyclonedx_doc = sbomtool_spdx3_structure_new(&pkg_client, &spdx_document, is_tool);
+	/*sbomtool_cyclonedx_structure_add_metadata(&pkg_client, cyclonedx_doc, creation_time, agent_name, agent_url, is_tool);*/
+
+	spdx_document.relationships = pkgconfcli_serialize_array_new();
+	spdx_document.licenses = pkgconfcli_serialize_array_new();
+
+	if (!spdx_document.relationships)
+	{
+		pkgconfcli_serialize_value_free(cyclonedx_doc);
+		ret = EXIT_FAILURE;
+		goto out;
+	}
 
 
-	int eflag = pkgconf_pkg_traverse(&pkg_client, &world, sbomtool_cyclondex_component_add_package, cyclonedx_doc, 2000, 0);
+	int eflag = pkgconf_pkg_traverse(&pkg_client, &world, sbomtool_spdx3_software_add_package,  &spdx_document, 2000, 0);
 	if (eflag != PKGCONF_PKG_ERRF_OK)
 	{
 		ret = EXIT_FAILURE;
 		goto out;
 	}
+
+	pkgconfcli_serialize_array_insert_copy(spdx_document.relationships, spdx_document.graph);
+	pkgconfcli_serialize_array_insert_copy(spdx_document.licenses, spdx_document.graph);
+
 	pkgconf_buffer_t buffer = PKGCONF_BUFFER_INITIALIZER;
 	bool bool_ret = pkgconfcli_serialize_value_to_buf(&buffer, cyclonedx_doc, 0);
+	free(spdx_document.licenses);
+	free(spdx_document.relationships);
 	pkgconfcli_serialize_value_free(cyclonedx_doc);
 
 	if (bool_ret)

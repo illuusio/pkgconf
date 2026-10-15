@@ -399,20 +399,18 @@ sbomtool_cyclondex_component_add_author(pkgconf_client_t *client, pkgconfcli_ser
 	return false;
 }
 
-
-
 /*
-* !doc
-*
-* .. c:function:: void sbomtool_cyclondex_component_add_package(pkgconf_client_t *client, pkgconf_pkg_t *pkg, void *ptr, unsigned int iter_flags)
-*
-*    This should be passes to package traverse function as callback. Adds components to CyclonDX SBOM
-*
-*    :param pkgconf_client_t *client: Pkgconf client struct
-*    :param  pkgconf_pkg_t *pkg: Package struct
-*    :param void *ptr: This should be CycloneDX struct
-*    :param onst char *iter_flags: Flags which are passed to function
-*/
+ * !doc
+ *
+ * .. c:function:: void sbomtool_cyclondex_component_add_package(pkgconf_client_t *client, pkgconf_pkg_t *pkg, void *ptr, unsigned int iter_flags)
+ *
+ *    This should be passes to package traverse function as callback. Adds components to CyclonDX SBOM
+ *
+ *    :param pkgconf_client_t *client: Pkgconf client struct
+ *    :param  pkgconf_pkg_t *pkg: Package struct
+ *    :param void *ptr: This should be CycloneDX struct
+ *    :param onst char *iter_flags: Flags which are passed to function
+ */
 void
 sbomtool_cyclondex_component_add_package(pkgconf_client_t *client, pkgconf_pkg_t *pkg, void *ptr, unsigned int iter_flags)
 {
