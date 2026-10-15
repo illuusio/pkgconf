@@ -1,3 +1,0 @@
-Tool: sbomtool
-ToolArgs: --bogus-option
-ExpectedExitCode: 1

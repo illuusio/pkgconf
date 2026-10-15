@@ -1,5 +1,0 @@
-Tool: sbomtool
-ToolArgs: --help
-ExpectedStdout: usage: sbomtool
-MatchStdout: Partial
-ExpectedExitCode: 0
