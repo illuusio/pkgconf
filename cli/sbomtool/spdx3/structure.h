@@ -29,10 +29,12 @@ typedef struct sbomtool_spdx3_document
     const char *agent_spdx_id;
     pkgconf_list_t licsenses;
     pkgconfcli_serialize_value_t *document_root;
+    pkgconfcli_serialize_value_t *sbom_document;
     pkgconfcli_serialize_array_t *graph;
+    pkgconfcli_serialize_array_t *documents;
     pkgconfcli_serialize_array_t *licenses;
-    pkgconfcli_serialize_array_t *element;
-    pkgconfcli_serialize_array_t *root_element;
+    pkgconfcli_serialize_array_t *elements;
+    pkgconfcli_serialize_array_t *root_elements;
     pkgconfcli_serialize_array_t *relationships;
     pkgconfcli_serialize_array_t *packages;
     pkgconfcli_serialize_array_t *maintainers;

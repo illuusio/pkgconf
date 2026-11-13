@@ -140,6 +140,9 @@ sbomtool_spdx3_software_sbom(pkgconf_client_t *client, sbomtool_spdx3_document_t
 	if (!spdx_id)
 		goto err;
 
+	if (!pkgconfcli_serialize_array_add_string(document->root_elements, spdx_id))
+		goto err;
+
 	object_list = pkgconfcli_serialize_object_list_new();
 	if (!object_list)
 		goto err;
@@ -194,7 +197,7 @@ sbomtool_spdx3_software_sbom(pkgconf_client_t *client, sbomtool_spdx3_document_t
 
 err:
 	if (!ret)
-		pkgconf_error(client, "sbomtool_spdx3_software_sbom_to_object: out of memory");
+		pkgconf_error(client, "sbomtool_spdx3_software_sbom: out of memory");
 
 	free(spdx_id);
 	pkgconfcli_serialize_object_list_free(object_list);
@@ -225,6 +228,7 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 	char *spdx_id = NULL;
 	char *license_spdx_id = NULL;
 	const char *relation_spdx_id = NULL;
+	const char *supplier_spdx_id = NULL;
 	pkgconfcli_serialize_value_t *ret = NULL;
 	// pkgconfcli_serialize_value_t *relationship_value = NULL;
 	pkgconfcli_serialize_object_list_t *object_list = NULL;
@@ -236,6 +240,7 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 	pkgconfcli_serialize_value_t *sbom_common_element = NULL;
 	pkgconfcli_serialize_value_t *spdx_element = NULL;
 	pkgconfcli_serialize_value_t *depencency_element = NULL;
+	pkgconfcli_serialize_value_t *supplier_element = NULL;
 	pkgconf_node_t *node = NULL;
 	bool add_array = false;
 
@@ -280,6 +285,28 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 	if (!ok)
 		goto err;
 
+	if (pkg->maintainer != NULL)
+	{
+
+		supplier_element = sbomtool_spdx3_core_agent(client, document->creation_info_id, pkg->maintainer);
+
+		if (!supplier_element)
+			goto err;
+
+		if (!pkgconfcli_serialize_array_add_take(document->maintainers, supplier_element))
+			goto err;
+
+		supplier_spdx_id = software_get_string(supplier_element, "spdxId");
+
+		if (!pkgconfcli_serialize_object_add_string(object_list, "suppliedBy", supplier_spdx_id))
+			goto err;
+
+		if (!pkgconfcli_serialize_array_add_string(document->elements, supplier_spdx_id))
+			goto err;
+
+	}
+
+
 	// supplier = sbomtool_spdx3_util_tuple_lookup(client, &pkg->vars, "suppliedBy");
 	//if (supplier && !pkgconfcli_serialize_object_add_string(object_list, "suppliedBy", "Muumi"))
 	//	goto err;
@@ -323,6 +350,9 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 
 			license_spdx_id = software_add_license(client, document, license->data);
 
+			if (!pkgconfcli_serialize_array_add_string(document->elements, license_spdx_id))
+				goto err;
+
 			if (!license_spdx_id)
 				goto err;
 
@@ -341,7 +371,7 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 		}
 	}
 
-	depencency_element = sbomtool_core_relationship(client, document, spdx_id, has_declared_license, pkg->id, "hasDeclaredLicense", NULL);
+	depencency_element = sbomtool_spdx3_core_relationship(client, document, spdx_id, has_declared_license, pkg->id, "hasDeclaredLicense", NULL);
 
 	if (!depencency_element)
 		goto err;
@@ -349,6 +379,9 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 	relation_spdx_id = software_get_string(depencency_element, "spdxId");
 
 	if (!relation_spdx_id)
+		goto err;
+
+	if (!pkgconfcli_serialize_array_add_string(document->elements, relation_spdx_id))
 		goto err;
 
 	if(!pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_value_get_array(sbom_common_element), pkgconfcli_serialize_value_string(relation_spdx_id)))
@@ -357,7 +390,7 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 	if(!pkgconfcli_serialize_array_add_take(document->relationships, depencency_element))
 		goto err;
 
-	depencency_element = sbomtool_core_relationship(client, document, spdx_id, has_concluded_license, pkg->id, "hasConcludedLicense", NULL);
+	depencency_element = sbomtool_spdx3_core_relationship(client, document, spdx_id, has_concluded_license, pkg->id, "hasConcludedLicense", NULL);
 
 	if (!depencency_element)
 		goto err;
@@ -365,6 +398,9 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 	relation_spdx_id = software_get_string(depencency_element, "spdxId");
 
 	if (!relation_spdx_id)
+		goto err;
+
+	if (!pkgconfcli_serialize_array_add_string(document->elements, relation_spdx_id))
 		goto err;
 
 	if(!pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_value_get_array(sbom_common_element), pkgconfcli_serialize_value_string(relation_spdx_id)))
@@ -390,6 +426,10 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 		if (!spdx_id_relation)
 			goto err;
 
+		if (!pkgconfcli_serialize_array_add_string(document->elements, spdx_id_relation))
+			goto err;
+
+
 		if(!pkgconfcli_serialize_array_add_string(depend_on_array, spdx_id_relation))
 		{
 			free(spdx_id_relation);
@@ -401,7 +441,7 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 
 	if (add_array)
 	{
-		depencency_element = sbomtool_core_relationship(client, document, spdx_id, depend_on_array, pkg->id, "dependsOn", NULL);
+		depencency_element = sbomtool_spdx3_core_relationship(client, document, spdx_id, depend_on_array, pkg->id, "dependsOn", NULL);
 
 		if (!depencency_element)
 			goto err;
@@ -414,6 +454,9 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 		relation_spdx_id = pkgconfcli_serialize_value_get_string(spdx_element);
 
 		if (!relation_spdx_id)
+			goto err;
+
+		if (!pkgconfcli_serialize_array_add_string(document->elements, relation_spdx_id))
 			goto err;
 
 		if(!pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_value_get_array(sbom_common_element), pkgconfcli_serialize_value_string(relation_spdx_id)))
@@ -443,6 +486,9 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 		if (!spdx_id_relation)
 			goto err;
 
+		if (!pkgconfcli_serialize_array_add_string(document->elements, spdx_id_relation))
+			goto err;
+
 		if(!pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_value_get_array(sbom_common_element), pkgconfcli_serialize_value_string(spdx_id_relation)))
 			goto err;
 
@@ -458,7 +504,7 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 
 	if (add_array)
 	{
-		depencency_element =  sbomtool_core_relationship(client, document, spdx_id, depend_on_array, pkg->id, "dependsOn", "development");
+		depencency_element =  sbomtool_spdx3_core_relationship(client, document, spdx_id, depend_on_array, pkg->id, "dependsOn", "development");
 
 		if (!depencency_element)
 			goto err;
@@ -471,6 +517,9 @@ sbomtool_spdx3_software_package(pkgconf_client_t *client, sbomtool_spdx3_documen
 		relation_spdx_id = pkgconfcli_serialize_value_get_string(spdx_element);
 
 		if (!relation_spdx_id)
+			goto err;
+
+		if (!pkgconfcli_serialize_array_add_string(document->elements, relation_spdx_id))
 			goto err;
 
 		if(!pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_value_get_array(sbom_common_element), pkgconfcli_serialize_value_string(relation_spdx_id)))
@@ -526,6 +575,7 @@ sbomtool_spdx3_software_add_package(pkgconf_client_t *client, pkgconf_pkg_t *pkg
 	//pkgconf_node_t *iter = NULL;
 	sbomtool_spdx3_document_t *document = (sbomtool_spdx3_document_t *) ptr;
 	pkgconfcli_serialize_value_t *sbom_obj = NULL;
+	pkgconfcli_serialize_value_t *sbom_package = NULL;
 	// pkgconfcli_serialize_value_t *package_obj = NULL;
 	// char *sbom_spdx_id_string = NULL;
 
@@ -542,14 +592,36 @@ sbomtool_spdx3_software_add_package(pkgconf_client_t *client, pkgconf_pkg_t *pkg
 	if (pkg->flags & PKGCONF_PKG_PROPF_VIRTUAL)
 		return;
 
+	if (!document->sbom_document)
+	{
+		document->sbom_document = sbomtool_spdx3_core_spdx_document(client, document);
+
+		if (!document->sbom_document)
+			goto err;
+
+		pkgconfcli_serialize_array_add_string(document->elements, document->agent_spdx_id);
+	}
+
 	sbom_obj = sbomtool_spdx3_software_sbom(client, document, pkg->id);
 
 	if (!sbom_obj)
 		goto err;
 
-	pkgconfcli_serialize_array_add_take(document->graph, sbom_obj);
+	pkgconfcli_serialize_array_add_take(document->packages, sbom_obj);
 
-	pkgconfcli_serialize_array_add_take(document->graph, sbomtool_spdx3_software_package(client, document, pkg, sbom_obj));
+	sbom_package = sbomtool_spdx3_software_package(client, document, pkg, sbom_obj);
+
+	pkgconfcli_serialize_array_add_take(document->packages, sbom_package);
+
+	const char *ptr_spdx_id = software_get_string(sbom_obj, "spdxId");
+
+	pkgconfcli_serialize_array_add_string(document->elements, ptr_spdx_id);
+
+	ptr_spdx_id = software_get_string(sbom_package, "spdxId");
+
+	pkgconfcli_serialize_array_add_string(document->elements, ptr_spdx_id);
+
+	// pkgconfcli_serialize_array_add_take(document->documents, sbomtool_spdx3_core_spdx_document(client, document, "test"));
 
 
 	/*sbom = spdxtool_software_sbom(client, document);

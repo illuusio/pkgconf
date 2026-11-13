@@ -9,7 +9,6 @@
  */
 
 #include <stdlib.h>
-#include <string.h>
 #include "util.h"
 #include "serialize.h"
 #include "spdx3/core.h"
@@ -49,7 +48,7 @@ sbomtool_spdx3_core_agent(pkgconf_client_t *client, const char *creation_info_id
 
 err:
 	if (!ret)
-		pkgconf_error(client, "sbomtool_spdx3_core_agent_to_object: out of memory");
+		pkgconf_error(client, "sbomtool_spdx3_core_agent: out of memory");
 
 	free(spdx_id);
 	pkgconfcli_serialize_object_list_free(object_list);
@@ -90,7 +89,7 @@ sbomtool_spdx3_core_tool(pkgconf_client_t *client, const char *creation_info_id,
 
 	err:
 	if (!ret)
-		pkgconf_error(client, "sbomtool_spdx3_core_agent_to_object: out of memory");
+		pkgconf_error(client, "sbomtool_spdx3_core_tool: out of memory");
 
 	free(spdx_id);
 	pkgconfcli_serialize_object_list_free(object_list);
@@ -175,7 +174,7 @@ sbomtool_spdx3_core_creation_info(pkgconf_client_t *client, const char *agent_id
 
 err:
 	if (!ret)
-		pkgconf_error(client, "sbomtool_spdx3_core_creation_info_to_object: out of memory");
+		pkgconf_error(client, "sbomtool_spdx3_core_creation_info: out of memory");
 
 	free(cur_time);
 	pkgconfcli_serialize_object_list_free(object_list);
@@ -194,7 +193,7 @@ err:
  *    :return: pkgconfcli_serialize_value_t * representing the Relationship object.
  */
 pkgconfcli_serialize_value_t *
-sbomtool_core_relationship(pkgconf_client_t *client, sbomtool_spdx3_document_t *document, const char *from, pkgconfcli_serialize_array_t *to, const char *name, const char *relationship_type, const char *scope)
+sbomtool_spdx3_core_relationship(pkgconf_client_t *client, sbomtool_spdx3_document_t *document, const char *from, pkgconfcli_serialize_array_t *to, const char *name, const char *relationship_type, const char *scope)
 {
 	if(!document || !from || !to)
 		return NULL;
@@ -243,10 +242,123 @@ sbomtool_core_relationship(pkgconf_client_t *client, sbomtool_spdx3_document_t *
 
 	err:
 	if (!ret)
-		pkgconf_error(client, "sbomtool_core_relationship_to_object: out of memory");
+		pkgconf_error(client, "sbomtool_spdx3_core_relationship: out of memory");
 
     free(spdx_id);
 	pkgconf_buffer_finalize(&relationship_buf);
 	pkgconfcli_serialize_object_list_free(object_list);
+	return ret;
+}
+
+/*
+ * !doc
+ *
+ * .. c:function:: pkgconfcli_serialize_value_t *spdxtool_core_spdx_document_to_object(pkgconf_client_t *client, spdxtool_core_spdx_document_t *spdx)
+ *
+ *    Serialize /Core/SpdxDocument struct to a JSON value tree. This function
+ *    should be called after all SBOMs and packages have been serialized so that
+ *    the document's element and rootElement lists are fully populated.
+ *
+ *    :param pkgconf_client_t *client: The pkgconf client being accessed.
+ *    :param spdxtool_core_spdx_document_t *spdx: SpdxDocument struct to be serialized.
+ *    :return: pkgconfcli_serialize_value_t * representing the SpdxDocument object.
+ */
+pkgconfcli_serialize_value_t *
+sbomtool_spdx3_core_spdx_document(pkgconf_client_t *client, sbomtool_spdx3_document_t *document)
+{
+	pkgconfcli_serialize_value_t *ret = NULL;
+	pkgconfcli_serialize_object_list_t *object_list = NULL;
+	pkgconfcli_serialize_array_t *root_element_array = NULL;
+	pkgconfcli_serialize_array_t *element_array = NULL;
+
+	char *spdx_id = sbomtool_util_get_sbom_id_int(client, "spdxDocument");
+
+	if (!spdx_id)
+		goto err;
+
+	object_list = pkgconfcli_serialize_object_list_new();
+	if (!object_list)
+		goto err;
+
+	root_element_array = pkgconfcli_serialize_array_new();
+	if (!root_element_array)
+		goto err;
+
+	/*pkgconf_node_t *iter = NULL;
+	 *	PKGCONF_FOREACH_LIST_ENTRY(spdx->rootElement.head, iter)
+	 *	{
+	 *		spdxtool_software_sbom_t *sbom = iter->data;
+	 *		if (!pkgconfcli_serialize_array_add_string(root_element_array, sbom->spdx_id))
+	 *			goto err;
+}*/
+	// pkgconfcli_serialize_array_append_move(document->root_element, root_element_array);
+
+	document->root_elements = root_element_array;
+
+	element_array = pkgconfcli_serialize_array_new();
+	if (!element_array)
+		goto err;
+
+	/*if (!pkgconfcli_serialize_array_add_string(element_array, spdx->agent))
+	 *		goto err;
+	 *
+	 *	PKGCONF_FOREACH_LIST_ENTRY(spdx->element.head, iter)
+	 *	{
+	 *		char *element_id = iter->data;
+	 *		if (!pkgconfcli_serialize_array_add_string(element_array, element_id))
+	 *			goto err;
+}*/
+	// pkgconfcli_serialize_array_append_move(document->element, element_array);
+
+	document->elements = element_array;
+
+	/*PKGCONF_FOREACH_LIST_ENTRY(spdx->rootElement.head, iter)
+	 *	{
+	 *		spdxtool_software_sbom_t *sbom = iter->data;
+	 *		char *pkg_spdx_id = spdxtool_util_tuple_lookup(client, &sbom->rootElement->vars, "spdxId");
+	 *		if (!pkg_spdx_id)
+	 *			goto err;
+	 *
+	 *		bool ok = pkgconfcli_serialize_array_add_string(element_array, sbom->spdx_id) &&
+	 *		pkgconfcli_serialize_array_add_string(element_array, pkg_spdx_id);
+	 *		free(pkg_spdx_id);
+	 *
+	 *		if (!ok)
+	 *			goto err;
+}*/
+
+	if (!(pkgconfcli_serialize_object_add_string(object_list, "type", "SpdxDocument") &&
+		pkgconfcli_serialize_object_add_string(object_list, "creationInfo", document->creation_info_id) &&
+		pkgconfcli_serialize_object_add_string(object_list, "spdxId", spdx_id)))
+	{
+		goto err;
+	}
+
+	/* object_add_array always takes ownership of the array (it is freed even on
+	 * failure), so clear our reference before checking the result to avoid a
+	 * double free at the error label.
+	 */
+	bool ok = pkgconfcli_serialize_object_add_array(object_list, "rootElement", root_element_array);
+	root_element_array = NULL;
+	if (!ok)
+		goto err;
+
+	ok = pkgconfcli_serialize_object_add_array(object_list, "element", element_array);
+	element_array = NULL;
+	if (!ok)
+		goto err;
+
+	ret = pkgconfcli_serialize_value_object(object_list);
+	object_list = NULL;
+
+	err:
+	if (!ret)
+		pkgconf_error(client, "spdxtool_spdx3_core_document: out of memory");
+
+	pkgconfcli_serialize_object_list_free(object_list);
+	pkgconfcli_serialize_array_free(root_element_array);
+	pkgconfcli_serialize_array_free(element_array);
+	free(spdx_id);
+
 	return ret;
 }

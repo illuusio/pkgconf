@@ -56,7 +56,11 @@ bool
 sbomtool_spdx3_core_relationship_set_scope(pkgconf_client_t *client, spdxtool_core_relationship_t *relationship, const char *scope);
 */
 pkgconfcli_serialize_value_t *
-sbomtool_core_relationship(pkgconf_client_t *client, sbomtool_spdx3_document_t *document, const char *from, pkgconfcli_serialize_array_t *to, const char *name, const char *relationship_type, const char *scope);
+sbomtool_spdx3_core_relationship(pkgconf_client_t *client, sbomtool_spdx3_document_t *document, const char *from, pkgconfcli_serialize_array_t *to, const char *name, const char *relationship_type, const char *scope);
+
+pkgconfcli_serialize_value_t *
+sbomtool_spdx3_core_spdx_document(pkgconf_client_t *client, sbomtool_spdx3_document_t *document);
+
 
 #ifdef __cplusplus
 }

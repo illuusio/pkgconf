@@ -353,9 +353,43 @@ main(int argc, char *argv[])
 			goto out;
 		}
 
+		spdx_document.packages = pkgconfcli_serialize_array_new();
+
+		if (!spdx_document.packages)
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+
+		spdx_document.maintainers = pkgconfcli_serialize_array_new();
+
+		if (!spdx_document.maintainers)
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+
 		int eflag = pkgconf_pkg_traverse(&pkg_client, &world, sbomtool_spdx3_software_add_package,  &spdx_document, 2000, 0);
 
 		if (eflag != PKGCONF_PKG_ERRF_OK)
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+
+		if (!pkgconfcli_serialize_array_append_move(spdx_document.maintainers, spdx_document.graph))
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+
+		if (!pkgconfcli_serialize_array_append_move(spdx_document.licenses, spdx_document.graph))
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+
+		if (!pkgconfcli_serialize_array_append_move(spdx_document.packages, spdx_document.graph))
 		{
 			ret = EXIT_FAILURE;
 			goto out;
@@ -366,14 +400,13 @@ main(int argc, char *argv[])
 			ret = EXIT_FAILURE;
 			goto out;
 		}
-		if (!pkgconfcli_serialize_array_append_move(spdx_document.licenses, spdx_document.graph))
+
+		if (!pkgconfcli_serialize_array_add_take(spdx_document.graph, spdx_document.sbom_document))
 		{
 			ret = EXIT_FAILURE;
 			goto out;
 		}
 	}
-
-
 
 	pkgconf_buffer_t buffer = PKGCONF_BUFFER_INITIALIZER;
 	bool bool_ret = pkgconfcli_serialize_value_to_buf(&buffer, sbom_doc, 0);
@@ -395,6 +428,8 @@ out:
 	pkgconfcli_serialize_value_free(sbom_doc);
 	free(spdx_document.licenses);
 	free(spdx_document.relationships);
+	free(spdx_document.packages);
+	free(spdx_document.maintainers);
 
 	pkgconf_solution_free(&pkg_client, &world);
 	pkgconf_queue_free(&pkgq);

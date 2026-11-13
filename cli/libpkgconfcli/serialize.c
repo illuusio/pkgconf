@@ -250,6 +250,20 @@ pkgconfcli_serialize_array_add_take(pkgconfcli_serialize_array_t *array, pkgconf
 	return value;
 }
 
+PKGCONFCLI_API bool
+pkgconfcli_serialize_array_append_move(pkgconfcli_serialize_array_t *src, pkgconfcli_serialize_array_t *dst)
+{
+	pkgconf_node_t *node = NULL;
+
+	while(src->items.length > 0)
+	{
+		pkgconf_node_shift(&node, &src->items);
+		pkgconf_list_insert(node, &dst->items, true);
+	}
+
+	return true;
+}
+
 /*
  * !doc
  *
