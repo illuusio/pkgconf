@@ -23,6 +23,9 @@
 #include "cyclonedx/structure.h"
 #include "spdx3/structure.h"
 #include "spdx3/software.h"
+#include "spdx2/structure.h"
+#include "spdx2/packages.h"
+#include "spdx2/spdx.h"
 #include "util.h"
 
 #define PKG_VERSION			(((uint64_t) 1) << 1)
@@ -36,14 +39,14 @@ typedef enum
 {
 	SBOMTOOL_FORMAT_UNKNOWN = -1,
 	SBOMTOOL_FORMAT_CYCLONEDX = 1,
-	SBOMTOOL_FORMAT_SPDX3
+	SBOMTOOL_FORMAT_SPDX3,
+	SBOMTOOL_FORMAT_SPDX2
 } sbomtool_format_t;
 
 static int maximum_traverse_depth = 2000;
 
 static pkgconf_client_t pkg_client;
 static uint64_t want_flags;
-// static int maximum_traverse_depth = 2000;
 static FILE *error_msgout = NULL;
 static FILE *sbom_out = NULL;
 static const char *app_name = "sbomtool";
@@ -106,7 +109,7 @@ usage(void)
 	printf("  --output FILE                     Output SBOM data to file\n");
 	printf("  --sbom-base-id URL                Use string as base of SBOM IDs [default: %s]\n", SBOMTOOL_URL_DEFAULT);
 	if (!strncmp(app_name, "sbomtool", 8))
-		printf("  --sbom-format URL                 Use SBOM format. Current supported formats cyclonedx [default: cyclonedx]\n");
+		printf("  --sbom-format URL                 Use SBOM format. Current supported formats cyclonedx, spdx3 and spdx2 [default: cyclonedx]\n");
 	printf("  --sbom-version NUM                Use this as SBOM version number. Value must be greater or equal to 1. [default: 1]\n");
 	printf("  --use-uri                         Use URIs not URLs as SPDX ID (It will use ':' as separator not '/' character)\n");
 	printf("  --version                         Print %s version to stdout\n", app_name);
@@ -125,6 +128,7 @@ main(int argc, char *argv[])
 	char world_realname[] = "virtual world package";
 	const char *sbom_id_base = SBOMTOOL_URL_DEFAULT;
 	bool colon_sep = false;
+	bool dash_sep = false;
 	pkgconf_pkg_t world =
 	{
 		.id = world_id,
@@ -217,6 +221,8 @@ main(int argc, char *argv[])
 					sbom_format = SBOMTOOL_FORMAT_CYCLONEDX;
 				else if (!strncmp(pkgconfcli_optarg, "spdx3", 5))
 					sbom_format = SBOMTOOL_FORMAT_SPDX3;
+				else if (!strncmp(pkgconfcli_optarg, "spdx2", 5))
+					sbom_format = SBOMTOOL_FORMAT_SPDX2;
 				else
 				{
 					pkgconf_output_file_fmt(stderr, "SBOM output format incorrect '%s'. It can be: cyclonedx", pkgconfcli_optarg);
@@ -247,6 +253,7 @@ main(int argc, char *argv[])
 			if (!strcmp(sbom_id_base, SBOMTOOL_URL_DEFAULT))
 				sbom_id_base = SBOMTOOL_URI_DEFAULT;
 			colon_sep = true;
+			dash_sep = false;
 			break;
 		case 110:
 			creation_id = pkgconfcli_optarg;
@@ -266,6 +273,13 @@ main(int argc, char *argv[])
 
 	if (!agent_name)
 		agent_name = "Default";
+
+	if (sbom_format == SBOMTOOL_FORMAT_SPDX2)
+	{
+		sbom_id_base = "SPDXRef";
+		colon_sep = false;
+		dash_sep = true;
+	}
 
 	if (!agent_url)
 		agent_url = SBOMTOOL_URL_DEFAULT;
@@ -336,6 +350,7 @@ main(int argc, char *argv[])
 
 	sbomtool_util_set_uri_root(&pkg_client, sbom_id_base);
 	sbomtool_util_set_uri_separator_colon(&pkg_client, colon_sep);
+	sbomtool_util_set_uri_separator_dash(&pkg_client, dash_sep);
 
 	if (sbom_format == SBOMTOOL_FORMAT_CYCLONEDX)
 	{
@@ -348,6 +363,30 @@ main(int argc, char *argv[])
 		}
 
 		int eflag = pkgconf_pkg_traverse(&pkg_client, &world, sbomtool_cyclondex_component_add_package, sbom_doc, 2000, 0);
+
+		if (eflag != PKGCONF_PKG_ERRF_OK)
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+	}
+	else if (sbom_format == SBOMTOOL_FORMAT_SPDX2)
+	{
+		sbom_doc = sbomtool_spdx2_structure_new(&pkg_client, "test", "test-license", agent_url);
+
+		if (!sbom_doc)
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+
+		if (!sbomtool_spdx2_structure_creation_info(&pkg_client, sbom_doc, creation_time, agent_name, agent_url, is_tool))
+		{
+			ret = EXIT_FAILURE;
+			goto out;
+		}
+
+		int eflag = pkgconf_pkg_traverse(&pkg_client, &world, sbomtool_spdx2_package_add_package,  sbom_doc, 2000, 0);
 
 		if (eflag != PKGCONF_PKG_ERRF_OK)
 		{
@@ -449,7 +488,11 @@ main(int argc, char *argv[])
 	}
 
 	pkgconf_buffer_t buffer = PKGCONF_BUFFER_INITIALIZER;
-	bool bool_ret = pkgconfcli_serialize_value_to_buf(&buffer, sbom_doc, 0);
+	bool bool_ret = false;
+	//if (sbom_format == SBOMTOOL_FORMAT_SPDX2)
+	//	bool_ret = sbomtool_spdx2_spdx_value_to_buf(&buffer, sbom_doc);
+	//else
+		bool_ret = pkgconfcli_serialize_value_to_buf(&buffer, sbom_doc, 0);
 
 	if (bool_ret)
 	{

@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 #define SBOMTOOL_SEPARATOR_COLON	0x80
+#define SBOMTOOL_SEPARATOR_DASH	0x32
 
 void
 sbomtool_util_set_key(pkgconf_client_t *client, const char *key, const char *key_value, const char *key_default);
@@ -28,6 +29,9 @@ sbomtool_util_set_uri_root(pkgconf_client_t *client, const char *uri_root);
 
 void
 sbomtool_util_set_uri_separator_colon(pkgconf_client_t *client, bool sep);
+
+void
+sbomtool_util_set_uri_separator_dash(pkgconf_client_t *client, bool is_dash);
 
 char
 sbomtool_util_get_uri_separator(pkgconf_client_t *client);

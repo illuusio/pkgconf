@@ -86,6 +86,52 @@ util_escape_uri_string(pkgconf_buffer_t *dest, pkgconf_buffer_t *src)
 	return true;
 }
 
+static bool
+util_escape_dash_string(pkgconf_buffer_t *dest, pkgconf_buffer_t *src)
+{
+	const char *p = pkgconf_buffer_str(src);
+
+	if (dest == src)
+		return false;
+
+	if (!p)
+		return true;
+
+	for (; *p; p++)
+	{
+		bool ret;
+
+		switch (*p)
+		{
+			case 0x20:
+			case '"':
+			case '%':
+			case '\'':
+			case '+':
+			case ',':
+			case '<':
+			case '>':
+			case '\\':
+			case '^':
+			case '`':
+			case '{':
+			case '|':
+			case '}':
+				ret = pkgconf_buffer_append(dest, "_");
+				break;
+			default:
+				ret = pkgconf_buffer_push_byte(dest, *p);
+				break;
+		}
+
+		if (!ret)
+			return false;
+	}
+
+	return true;
+}
+
+
 /*
  * !doc
  *
@@ -163,6 +209,26 @@ sbomtool_util_set_uri_separator_colon(pkgconf_client_t *client, bool is_colon)
 /*
  * !doc
  *
+ * .. c:function:: void sbomtool_util_set_uri_separator_dash(pkgconf_client_t *client, bool is_dash)
+ *
+ *    when using URI rather than URL change separator from slash '/' to dash '-'.
+ *
+ *    :param pkgconf_client_t* client: The pkgconf client being accessed.
+ *    :param bool is_colon If true use dash '-' is separator and otherwise slash '/'
+ *    :return: nothing
+ */
+void
+sbomtool_util_set_uri_separator_dash(pkgconf_client_t *client, bool is_dash)
+{
+	if (is_dash == true)
+		client->flags |= SBOMTOOL_SEPARATOR_DASH;
+	else
+		client->flags = client->flags & ~SBOMTOOL_SEPARATOR_DASH;
+}
+
+/*
+ * !doc
+ *
  * .. c:function:: char sbomtool_util_get_uri_separator(pkgconf_client_t *client)
  *
  *    Get separator char
@@ -173,6 +239,9 @@ sbomtool_util_set_uri_separator_colon(pkgconf_client_t *client, bool is_colon)
 char
 sbomtool_util_get_uri_separator(pkgconf_client_t *client)
 {
+	if (client->flags & SBOMTOOL_SEPARATOR_DASH)
+		return '-';
+
 	if (client->flags & SBOMTOOL_SEPARATOR_COLON)
 		return ':';
 
@@ -261,13 +330,24 @@ sbomtool_util_get_sbom_id_int(pkgconf_client_t *client, const char *part)
 
 	last_id++;
 
-	if (!util_escape_uri_string(&escaped_uri, &current_uri))
+	if (client->flags & SBOMTOOL_SEPARATOR_DASH)
 	{
-		pkgconf_buffer_finalize(&current_uri);
-		pkgconf_buffer_finalize(&escaped_uri);
-		return NULL;
+		if (!util_escape_dash_string(&escaped_uri, &current_uri))
+		{
+			pkgconf_buffer_finalize(&current_uri);
+			pkgconf_buffer_finalize(&escaped_uri);
+			return NULL;
+		}
 	}
-
+	else
+	{
+		if (!util_escape_uri_string(&escaped_uri, &current_uri))
+		{
+			pkgconf_buffer_finalize(&current_uri);
+			pkgconf_buffer_finalize(&escaped_uri);
+			return NULL;
+		}
+	}
 	pkgconf_buffer_finalize(&current_uri);
 
 	return pkgconf_buffer_freeze(&escaped_uri);
@@ -300,11 +380,23 @@ sbomtool_util_get_sbom_id_string(pkgconf_client_t *client, const char *part, con
 		return NULL;
 	}
 
-	if (!util_escape_uri_string(&escaped_uri, &current_uri))
+	if (client->flags & SBOMTOOL_SEPARATOR_DASH)
 	{
-		pkgconf_buffer_finalize(&current_uri);
-		pkgconf_buffer_finalize(&escaped_uri);
-		return NULL;
+		if (!util_escape_dash_string(&escaped_uri, &current_uri))
+		{
+			pkgconf_buffer_finalize(&current_uri);
+			pkgconf_buffer_finalize(&escaped_uri);
+			return NULL;
+		}
+	}
+	else
+	{
+		if (!util_escape_uri_string(&escaped_uri, &current_uri))
+		{
+			pkgconf_buffer_finalize(&current_uri);
+			pkgconf_buffer_finalize(&escaped_uri);
+			return NULL;
+		}
 	}
 
 	pkgconf_buffer_finalize(&current_uri);
