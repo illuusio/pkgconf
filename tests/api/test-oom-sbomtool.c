@@ -38,6 +38,7 @@ oom_setup(void)
 	// Mirror cli/spdxtool/main.c: the constructors read these globals
 	sbomtool_util_set_uri_root(g_client, "https://example.com/space name");
 	sbomtool_util_set_uri_separator_colon(g_client, false);
+	sbomtool_util_set_uri_separator_dash(g_client, false);
 	sbomtool_util_set_sbom_version(g_client, "1.7");
 	sbomtool_util_set_sbom_license(g_client, "CC0-1.0");
 }
